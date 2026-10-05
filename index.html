@@ -98,7 +98,8 @@ input{font-family:inherit;}
 
 /* ================= GRID ================= */
 .grid{display:grid;grid-template-columns:1fr;gap:14px;}
-@media(min-width:640px){.grid{grid-template-columns:1fr 1fr;}}
+/* auto-fit：單張卡佔滿一行，多張卡自動 2 欄 */
+@media(min-width:640px){.grid{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));}}
 
 .card{
   position:relative;display:flex;align-items:center;gap:16px;
