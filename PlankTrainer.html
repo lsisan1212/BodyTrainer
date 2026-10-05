@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e1116">
+<title>Plank Trainer</title>
+<style>
+/* ================= THEME ================= */
+html[data-theme="dark"]{
+  --bg:#0e1116; --bg2:#141922; --card:#191f29; --card2:#222a36;
+  --text:#eef3f9; --muted:#93a1b5; --border:#2b3543;
+  --accent:#34d399; --accentText:#04231a; --accent2:#60a5fa;
+  --danger:#f87171; --dangerText:#2a0808;
+}
+html[data-theme="light"]{
+  --bg:#f2f5f9; --bg2:#e8edf4; --card:#ffffff; --card2:#eef2f7;
+  --text:#0f172a; --muted:#5a6a80; --border:#d3dce7;
+  --accent:#0d9488; --accentText:#ffffff; --accent2:#2563eb;
+  --danger:#dc2626; --dangerText:#ffffff;
+}
+html[data-theme="ocean"]{
+  --bg:#08202e; --bg2:#0b2a3c; --card:#0e3448; --card2:#134159;
+  --text:#e6f6ff; --muted:#8fb9cf; --border:#1b5573;
+  --accent:#22d3ee; --accentText:#04222b; --accent2:#38bdf8;
+  --danger:#fb7185; --dangerText:#3b0713;
+}
+html[data-theme="sunset"]{
+  --bg:#26131c; --bg2:#331a25; --card:#3a1f2b; --card2:#482736;
+  --text:#ffeef3; --muted:#c9a3b0; --border:#5c3245;
+  --accent:#fb923c; --accentText:#2b1305; --accent2:#f472b6;
+  --danger:#f87171; --dangerText:#2a0808;
+}
+
+/* ================= BASE ================= */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"PingFang TC","PingFang SC",
+              "Noto Sans TC","Noto Sans SC","Microsoft JhengHei","Microsoft YaHei",sans-serif;
+  overscroll-behavior:none; -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit; touch-action:manipulation; cursor:pointer;}
+input,select{font-family:inherit;}
+.hidden{display:none !important;}
+
+/* icons */
+svg .ln{fill:none;stroke:currentColor;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;}
+svg .hd{fill:none;stroke:currentColor;stroke-width:5;}
+svg .gnd{stroke:currentColor;stroke-width:2;opacity:.25;}
+svg .hl{stroke:var(--accent);}
+svg .arw{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+svg .lbl{fill:var(--accent);font-size:18px;font-weight:800;font-family:inherit;}
+
+/* ================= APP SHELL ================= */
+#app{display:flex;flex-direction:column;min-height:100dvh;max-width:600px;margin:0 auto;}
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
+  padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;
+  background:var(--bg);border-bottom:1px solid var(--border);
+}
+.topbar h1{font-size:17px;margin:0;flex:1;font-weight:800;letter-spacing:.3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tools{display:flex;align-items:center;gap:8px;}
+.dots{display:flex;gap:6px;}
+.dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);padding:0;
+  background:linear-gradient(135deg,var(--d1) 50%,var(--d2) 50%);}
+.dot.on{border-color:var(--accent);}
+.pill{
+  border:1px solid var(--border);background:var(--card2);color:var(--text);
+  border-radius:999px;padding:6px 11px;font-size:13px;font-weight:700;min-width:40px;
+}
+.icon-btn{
+  border:1px solid var(--border);background:var(--card2);color:var(--text);
+  border-radius:999px;padding:5px 9px;font-size:15px;font-weight:700;line-height:1;
+}
+.icon-btn.off{color:var(--muted);opacity:.55;}
+main{flex:1;padding:14px 14px calc(env(safe-area-inset-bottom) + 92px);}
+.view{animation:fade .18s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ================= START BUTTON ================= */
+.start-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:20px;border-radius:20px;border:none;
+  background:var(--accent);color:var(--accentText);
+  font-size:20px;font-weight:800;letter-spacing:.6px;
+  box-shadow:0 10px 26px -12px rgba(0,0,0,.65);
+  margin-bottom:20px;transition:transform .1s;
+}
+.start-btn:active{transform:scale(.98);}
+.start-btn .play{width:22px;height:22px;fill:currentColor;}
+
+/* ================= SECTIONS ================= */
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;}
+.sec-head h2{font-size:14px;margin:0;color:var(--muted);font-weight:700;letter-spacing:.8px;text-transform:uppercase;}
+.btn{border:1px solid var(--border);background:var(--card2);color:var(--text);
+  border-radius:12px;padding:9px 14px;font-size:14px;font-weight:700;}
+.btn.small{padding:7px 12px;font-size:13px;}
+.btn.tiny{padding:6px 9px;font-size:13px;border-radius:10px;line-height:1;}
+.btn.primary{background:var(--accent);color:var(--accentText);border-color:transparent;}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted);font-size:20px;padding:6px 10px;}
+.btn.danger{color:var(--danger);}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:22px 10px;line-height:1.6;}
+
+/* ================= ROUTINE CARDS ================= */
+.routine{
+  position:relative;display:flex;gap:10px;align-items:flex-start;
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:16px;padding:12px;margin-bottom:10px;transition:border-color .15s,background .15s;
+}
+.routine.sel{border-color:var(--accent);background:var(--card2);}
+.r-main{flex:1;min-width:0;}
+.r-name{font-size:16px;font-weight:800;margin-bottom:3px;word-break:break-word;}
+.routine.sel .r-name::before{content:"✓ ";color:var(--accent);}
+.r-meta{font-size:12.5px;color:var(--muted);margin-bottom:8px;}
+.r-chips{display:flex;flex-wrap:wrap;gap:4px;}
+.chip-ic{display:inline-block;width:34px;height:24px;color:var(--muted);}
+.chip-ic svg{width:100%;height:100%;display:block;}
+.r-btns{display:flex;flex-direction:column;gap:6px;}
+
+/* ================= BOTTOM NAV ================= */
+.bottom{
+  position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;
+  max-width:600px;margin:0 auto;
+  background:var(--bg);border-top:1px solid var(--border);
+  padding:6px 6px calc(env(safe-area-inset-bottom) + 6px);
+}
+.bottom button{
+  flex:1;background:transparent;border:none;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 4px;border-radius:12px;font-size:11px;font-weight:700;
+}
+.bottom button span{font-size:18px;line-height:1;}
+.bottom button em{font-style:normal;}
+.bottom button.on{color:var(--accent);background:var(--card2);}
+
+/* ================= SEGMENT ================= */
+.seg{display:flex;gap:6px;background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:4px;margin-bottom:14px;}
+.seg button{flex:1;border:none;background:transparent;color:var(--muted);
+  padding:9px;border-radius:10px;font-size:14px;font-weight:700;}
+.seg button.on{background:var(--accent);color:var(--accentText);}
+
+/* ================= CALENDAR ================= */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cal-title{font-size:16px;font-weight:800;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-dow{text-align:center;font-size:11px;color:var(--muted);font-weight:700;padding:4px 0;}
+.cal-cell{
+  aspect-ratio:1/1;border-radius:11px;background:var(--card);
+  border:1.5px solid transparent;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1px;font-size:13px;
+}
+.cal-cell.empty{background:transparent;}
+.cal-cell.has{background:var(--card2);border-color:var(--border);}
+.cal-cell.today{border-color:var(--accent2);}
+.cal-cell.sel{border-color:var(--accent);background:var(--card2);}
+.cal-num{font-weight:700;}
+.cal-min{font-size:9px;color:var(--accent);font-weight:800;}
+
+.day-card{background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:12px;margin-top:14px;}
+.day-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.day-date{font-weight:800;font-size:14px;}
+.day-total{color:var(--accent);font-weight:800;font-size:14px;}
+.sess{padding:9px 0;border-top:1px solid var(--border);}
+.sess:first-of-type{border-top:none;}
+.sess-top{display:flex;justify-content:space-between;gap:8px;}
+.sess-name{font-weight:700;font-size:14px;word-break:break-word;}
+.sess-meta{font-size:13px;color:var(--accent);font-weight:700;white-space:nowrap;}
+.sess-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* ================= STATS ================= */
+.stat-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;}
+.stat-num{font-size:22px;font-weight:800;color:var(--accent);}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:3px;font-weight:600;}
+.bars{display:flex;flex-direction:column;gap:8px;}
+.bar-row{display:grid;grid-template-columns:42px 1fr 58px;align-items:center;gap:8px;font-size:12px;}
+.bar-lbl{color:var(--muted);font-weight:700;}
+.bar-track{height:10px;background:var(--card2);border-radius:999px;overflow:hidden;}
+.bar-fill{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .3s;}
+.bar-val{text-align:right;color:var(--muted);font-weight:700;}
+
+/* ================= OVERLAY / PLAYER ================= */
+.overlay{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;}
+.player{
+  display:flex;flex-direction:column;height:100%;
+  padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 16px);
+}
+.p-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.p-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;display:block;}
+.p-total{font-size:clamp(24px,8vw,34px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.5px;}
+.p-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:0;text-align:center;}
+.p-icon{width:min(84vw,330px);height:min(54vw,215px);color:var(--text);}
+.p-icon svg{width:100%;height:100%;display:block;}
+.p-name{font-size:19px;font-weight:800;color:var(--accent);}
+.p-cur{
+  font-size:clamp(40px,13.5vw,62px);font-weight:800;line-height:1;
+  font-variant-numeric:tabular-nums;letter-spacing:1px;
+}
+.p-bar{width:min(84vw,340px);height:8px;border-radius:999px;background:var(--card2);overflow:hidden;}
+.p-bar-fill{display:block;height:100%;width:0;background:var(--accent);border-radius:999px;}
+.p-next{font-size:13px;color:var(--muted);min-height:18px;font-weight:600;}
+.p-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px;}
+.pbtn{
+  padding:18px 6px;border-radius:16px;border:1px solid var(--border);
+  background:var(--card2);color:var(--text);font-size:15px;font-weight:800;
+  transition:transform .1s;
+}
+.pbtn:active{transform:scale(.97);}
+.pbtn.primary{background:var(--accent);color:var(--accentText);border-color:transparent;}
+.pbtn.big{padding:16px 34px;}
+
+.p-done{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;}
+.player.done .p-head,.player.done .p-body,.player.done .p-btns{display:none;}
+.player.done .p-done{display:flex;}
+.done-emoji{font-size:56px;}
+.done-title{font-size:28px;font-weight:800;color:var(--accent);}
+.done-sub{color:var(--muted);font-size:15px;}
+.done-time{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums;}
+
+/* ================= EDITOR ================= */
+.sheet{display:flex;flex-direction:column;height:100%;background:var(--bg);}
+.sheet-head{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;border-bottom:1px solid var(--border);
+}
+.sheet-head h2{font-size:16px;margin:0;font-weight:800;}
+.sheet-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;
+  padding-bottom:calc(env(safe-area-inset-bottom) + 20px);}
+.input{
+  width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);
+  border-radius:12px;padding:12px 12px;font-size:15px;outline:none;
+}
+.input:focus{border-color:var(--accent);}
+.ed-list{display:flex;flex-direction:column;gap:8px;}
+.ed-row{display:flex;align-items:center;gap:8px;background:var(--card);
+  border:1px solid var(--border);border-radius:12px;padding:8px 10px;}
+.ed-ic{width:56px;height:38px;color:var(--text);flex:none;}
+.ed-ic svg{width:100%;height:100%;display:block;}
+.ed-nm{flex:1;font-size:14px;font-weight:700;min-width:0;word-break:break-word;}
+.ed-d{width:62px !important;padding:8px 6px !important;text-align:center;font-size:14px;}
+.ed-u{font-size:12px;color:var(--muted);}
+.ed-add{display:flex;gap:8px;align-items:center;}
+.ed-add select{flex:1;min-width:0;}
+.ed-add input{width:78px;text-align:center;}
+.ed-total{text-align:center;color:var(--muted);font-size:13px;font-weight:700;}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="topbar">
+    <h1 id="appTitle">Plank</h1>
+    <div class="tools">
+      <div id="themeDots" class="dots"></div>
+      <button id="soundBtn" class="icon-btn" title="Sound">🔊</button>
+      <button id="langBtn" class="pill">繁</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ TRAIN ============ -->
+    <section id="view-train" class="view">
+      <button id="startBtn" class="start-btn">
+        <svg class="play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span id="startLabel">開始訓練</span>
+      </button>
+      <div class="sec-head">
+        <h2 id="routinesTitle">訓練組合</h2>
+        <button id="newRoutineBtn" class="btn small">＋</button>
+      </div>
+      <div id="routineList"></div>
+    </section>
+
+    <!-- ============ HISTORY ============ -->
+    <section id="view-history" class="view hidden">
+      <div class="seg" id="histSeg">
+        <button data-seg="cal" class="on" id="segCal">日曆</button>
+        <button data-seg="list" id="segList">列表</button>
+      </div>
+      <div id="histCal"></div>
+      <div id="histDay"></div>
+      <div id="histList" class="hidden"></div>
+    </section>
+
+    <!-- ============ STATS ============ -->
+    <section id="view-stats" class="view hidden">
+      <div id="statsBody"></div>
+    </section>
+  </main>
+
+  <nav class="bottom">
+    <button data-view="train" class="on"><span>🏋️</span><em id="navTrain">訓練</em></button>
+    <button data-view="history"><span>📅</span><em id="navHistory">紀錄</em></button>
+    <button data-view="stats"><span>📊</span><em id="navStats">統計</em></button>
+  </nav>
+</div>
+
+<!-- ================= PLAYER ================= -->
+<div id="player" class="overlay hidden">
+  <div class="player" id="playerInner">
+    <div class="p-head">
+      <div>
+        <span class="p-label" id="lblOverall">總剩餘</span>
+        <div class="p-total" id="pTotal">05:00</div>
+      </div>
+      <button id="pClose" class="btn ghost">✕</button>
+    </div>
+    <div class="p-body">
+      <div class="p-icon" id="pIcon"></div>
+      <div class="p-name" id="pName"></div>
+      <div class="p-cur" id="pCur">00:30:000</div>
+      <div class="p-bar"><span class="p-bar-fill" id="pBar"></span></div>
+      <div class="p-next" id="pNext"></div>
+    </div>
+    <div class="p-btns">
+      <button id="pPause" class="pbtn primary">暫停</button>
+      <button id="pSkip" class="pbtn">跳過</button>
+      <button id="pAdd" class="pbtn">+10 秒</button>
+    </div>
+    <div class="p-done">
+      <div class="done-emoji">🎉</div>
+      <div class="done-title" id="doneTitle">完成！</div>
+      <div class="done-sub" id="doneSub"></div>
+      <div class="done-time" id="doneTime">00:00</div>
+      <button id="doneBtn" class="pbtn primary big">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= EDITOR ================= -->
+<div id="editor" class="overlay hidden">
+  <div class="sheet">
+    <div class="sheet-head">
+      <button id="edCancel" class="btn ghost">取消</button>
+      <h2 id="edTitle">新增組合</h2>
+      <button id="edSave" class="btn primary small">儲存</button>
+    </div>
+    <div class="sheet-body">
+      <input id="edName" class="input" placeholder="">
+      <div id="edList" class="ed-list"></div>
+      <div class="ed-add">
+        <select id="edAction" class="input"></select>
+        <input id="edDur" class="input" type="number" min="5" step="5" value="30" inputmode="numeric">
+        <button id="edAdd" class="btn primary">＋</button>
+      </div>
+      <div class="ed-total" id="edTotal"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* =========================================================
+   STORAGE (safe for file://)
+========================================================= */
+var mem = {};
+var store = {
+  get: function(k, def){
+    if (Object.prototype.hasOwnProperty.call(mem, k)) return mem[k];
+    try {
+      var v = localStorage.getItem(k);
+      return v === null ? def : JSON.parse(v);
+    } catch(e){ return def; }
+  },
+  set: function(k, v){
+    mem[k] = v;
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){}
+  }
+};
+var K = { routines:'plank.routines.v1', history:'plank.history.v1', settings:'plank.settings.v1' };
+
+/* =========================================================
+   SOUND (Web Audio — no external files)
+========================================================= */
+var audioCtx = null;
+function initAudio(){
+  try {
+    if (!audioCtx){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch(e){}
+}
+function beep(freq, dur, vol){
+  if (!settings.sound) return;
+  try {
+    if (!audioCtx) return;
+    var o = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.value = freq;
+    var now = audioCtx.currentTime;
+    var v = vol || 0.18;
+    g.gain.setValueAtTime(v, now);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur/1000);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(now);
+    o.stop(now + dur/1000);
+  } catch(e){}
+}
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+var ACTIONS = [
+  {id:'full',   en:'Full Plank',           tw:'高平板支撐',   cn:'高平板支撑'},
+  {id:'elbow',  en:'Elbow Plank',          tw:'肘撐平板',     cn:'肘撑平板'},
+  {id:'lleg',   en:'Left Leg Plank',       tw:'左抬腿平板',   cn:'左抬腿平板'},
+  {id:'rleg',   en:'Right Leg Plank',      tw:'右抬腿平板',   cn:'右抬腿平板'},
+  {id:'lside',  en:'Left Side Plank',      tw:'左側平板',     cn:'左侧平板'},
+  {id:'rside',  en:'Right Side Plank',     tw:'右側平板',     cn:'右侧平板'},
+  {id:'rev',    en:'Reverse Plank',        tw:'反向平板',     cn:'反向平板'},
+  {id:'revelb', en:'Reverse Elbow Plank',  tw:'反向肘撐平板', cn:'反向肘撑平板'}
+];
+var A_BY_ID = {};
+ACTIONS.forEach(function(a){ A_BY_ID[a.id] = a; });
+
+/* =========================================================
+   ICONS (anatomically clearer stick figures)
+========================================================= */
+var GROUND = '<line class="gnd" x1="3" y1="72" x2="117" y2="72"/>';
+
+function svgWrap(inner, mirror){
+  return '<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">' +
+    (mirror ? '<g transform="translate(120,0) scale(-1,1)">' + inner + '</g>' : inner) +
+  '</svg>';
+}
+function dot(x, y, hl){
+  return '<circle cx="' + x + '" cy="' + y + '" r="2.6" fill="' +
+    (hl ? 'var(--accent)' : 'currentColor') + '" opacity="' + (hl ? '1' : '0.55') + '"/>';
+}
+
+var ICON = {
+  /* ---- Full Plank (high plank, arms straight, on toes) ---- */
+  full: svgWrap(
+    GROUND +
+    '<circle class="hd" cx="100" cy="32" r="7"/>' +
+    '<line class="ln" x1="94" y1="36" x2="90" y2="40"/>' +
+    '<line class="ln" x1="90" y1="40" x2="40" y2="50"/>' +
+    dot(90, 40) + dot(40, 50) +
+    '<line class="ln" x1="90" y1="40" x2="90" y2="72"/>' +
+    dot(90, 72) +
+    '<line class="ln" x1="40" y1="50" x2="24" y2="58"/>' +
+    '<line class="ln" x1="24" y1="58" x2="10" y2="66"/>' +
+    '<line class="ln" x1="10" y1="66" x2="5" y2="72"/>' +
+    dot(24, 58) + dot(10, 66) + dot(5, 72)
+  ),
+
+  /* ---- Elbow Plank (forearm plank, hands forward toward head) ---- */
+  elbow: svgWrap(
+    GROUND +
+    '<circle class="hd" cx="100" cy="34" r="7"/>' +
+    '<line class="ln" x1="94" y1="38" x2="90" y2="42"/>' +
+    '<line class="ln" x1="90" y1="42" x2="40" y2="52"/>' +
+    dot(90, 42) + dot(40, 52) +
+    '<line class="ln" x1="90" y1="42" x2="90" y2="68"/>' +
+    '<line class="ln" x1="90" y1="68" x2="103" y2="72"/>' +
+    dot(90, 68) + dot(103, 72) +
+    '<line class="ln" x1="40" y1="52" x2="24" y2="60"/>' +
+    '<line class="ln" x1="24" y1="60" x2="10" y2="68"/>' +
+    '<line class="ln" x1="10" y1="68" x2="5" y2="72"/>' +
+    dot(24, 60) + dot(10, 68) + dot(5, 72)
+  ),
+
+  /* ---- Left Leg Plank (left leg raised) ---- */
+  lleg: svgWrap(
+    GROUND +
+    '<circle class="hd" cx="100" cy="32" r="7"/>' +
+    '<line class="ln" x1="94" y1="36" x2="90" y2="40"/>' +
+    '<line class="ln" x1="90" y1="40" x2="40" y2="50"/>' +
+    dot(90, 40) + dot(40, 50) +
+    '<line class="ln" x1="90" y1="40" x2="90" y2="72"/>' +
+    dot(90, 72) +
+    '<line class="ln" x1="40" y1="50" x2="24" y2="58"/>' +
+    '<line class="ln" x1="24" y1="58" x2="10" y2="66"/>' +
+    '<line class="ln" x1="10" y1="66" x2="5" y2="72"/>' +
+    dot(24, 58) + dot(10, 66) + dot(5, 72) +
+    '<line class="ln hl" x1="40" y1="50" x2="28" y2="40"/>' +
+    '<line class="ln hl" x1="28" y1="40" x2="16" y2="34"/>' +
+    '<line class="ln hl" x1="16" y1="34" x2="10" y2="32"/>' +
+    dot(28, 40, true) + dot(16, 34, true) + dot(10, 32, true) +
+    '<text class="lbl" x="2" y="22">L</text>'
+  ),
+
+  /* ---- Right Leg Plank (right leg raised) ---- */
+  rleg: svgWrap(
+    GROUND +
+    '<circle class="hd" cx="100" cy="32" r="7"/>' +
+    '<line class="ln" x1="94" y1="36" x2="90" y2="40"/>' +
+    '<line class="ln" x1="90" y1="40" x2="40" y2="50"/>' +
+    dot(90, 40) + dot(40, 50) +
+    '<line class="ln" x1="90" y1="40" x2="90" y2="72"/>' +
+    dot(90, 72) +
+    '<line class="ln" x1="40" y1="50" x2="24" y2="58"/>' +
+    '<line class="ln" x1="24" y1="58" x2="10" y2="66"/>' +
+    '<line class="ln" x1="10" y1="66" x2="5" y2="72"/>' +
+    dot(24, 58) + dot(10, 66) + dot(5, 72) +
+    '<line class="ln hl" x1="40" y1="50" x2="28" y2="40"/>' +
+    '<line class="ln hl" x1="28" y1="40" x2="16" y2="34"/>' +
+    '<line class="ln hl" x1="16" y1="34" x2="10" y2="32"/>' +
+    dot(28, 40, true) + dot(16, 34, true) + dot(10, 32, true) +
+    '<text class="lbl" x="2" y="22">R</text>'
+  ),
+
+  /* ---- Left Side Plank ---- */
+  lside: svgWrap(
+    GROUND +
+    '<circle class="hd" cx="22" cy="28" r="7"/>' +
+    '<line class="ln" x1="28" y1="33" x2="32" y2="36"/>' +
+    '<line class="ln" x1="32" y1="36" x2="70" y2="52"/>' +
+    dot(32, 36) + dot(70, 52) +
+    '<line class="ln" x1="32" y1="36" x2="32" y2="68"/>' +
+    '<line class="ln" x1="32" y1="68" x2="44" y2="72"/>' +
+    dot(32, 68) + dot(44, 72) +
+    '<line class="ln" x1="70" y1="52" x2="84" y2="58"/>' +
+    '<line class="ln" x1="84" y1="58" x2="96" y2="64"/>' +
+    '<line class="ln" x1="96" y1="64" x2="102" y2="70"/>' +
+    dot(84, 58) + dot(96, 64) + dot(102, 70) +
+    '<line class="ln hl" x1="32" y1="36" x2="36" y2="12"/>' +
+    dot(36, 12, true)
+  ),
+
+  /* ---- Right Side Plank ---- */
+  rside: svgWrap(
+    GROUND +
+    '<circle class="hd" cx="98" cy="28" r="7"/>' +
+    '<line class="ln" x1="92" y1="33" x2="88" y2="36"/>' +
+    '<line class="ln" x1="88" y1="36" x2="50" y2="52"/>' +
+    dot(88, 36) + dot(50, 52) +
+    '<line class="ln" x1="88" y1="36" x2="88" y2="68"/>' +
+    '<line class="ln" x1="88" y1="68" x2="76" y2="72"/>' +
+    dot(88, 68) + dot(76, 72) +
+    '<line class="ln" x1="50" y1="52" x2="36" y2="58"/>' +
+    '<line class="ln" x1="36" y1="58" x2="24" y2="64"/>' +
+    '<line class="ln" x1="24" y1="64" x2="18" y2="70"/>' +
+    dot(36, 58) + dot(24, 64) + dot(18, 70) +
+    '<line class="ln hl" x1="88" y1="36" x2="84" y2="12"/>' +
+    dot(84, 12, true)
+  ),
+
+  /* ---- Reverse Plank ---- */
+  rev: svgWrap(
+    GROUND +
+    '<circle class="hd" cx="100" cy="30" r="7"/>' +
+    '<line class="ln" x1="94" y1="34" x2="90" y2="38"/>' +
+    '<line class="ln" x1="90" y1="38" x2="42" y2="48"/>' +
+    dot(90, 38) + dot(42, 48) +
+    '<line class="ln" x1="90" y1="38" x2="98" y2="72"/>' +
+    dot(98, 72) +
+    '<line class="ln" x1="42" y1="48" x2="26" y2="56"/>' +
+    '<line class="ln" x1="26" y1="56" x2="12" y2="64"/>' +
+    '<line class="ln" x1="12" y1="64" x2="6" y2="72"/>' +
+    dot(26, 56) + dot(12, 64) + dot(6, 72) +
+    '<path class="arw" d="M62 42 L62 24 M55 31 L62 23 L69 31"/>'
+  ),
+
+  /* ---- Reverse Elbow Plank (forearms behind, toward feet) ---- */
+  revelb: svgWrap(
+    GROUND +
+    '<circle class="hd" cx="100" cy="32" r="7"/>' +
+    '<line class="ln" x1="94" y1="36" x2="90" y2="40"/>' +
+    '<line class="ln" x1="90" y1="40" x2="42" y2="50"/>' +
+    dot(90, 40) + dot(42, 50) +
+    '<line class="ln" x1="90" y1="40" x2="82" y2="68"/>' +
+    '<line class="ln" x1="82" y1="68" x2="68" y2="72"/>' +
+    dot(82, 68) + dot(68, 72) +
+    '<line class="ln" x1="42" y1="50" x2="26" y2="58"/>' +
+    '<line class="ln" x1="26" y1="58" x2="12" y2="66"/>' +
+    '<line class="ln" x1="12" y1="66" x2="6" y2="72"/>' +
+    dot(26, 58) + dot(12, 66) + dot(6, 72) +
+    '<path class="arw" d="M62 44 L62 26 M55 33 L62 25 L69 33"/>'
+  )
+};
+
+/* =========================================================
+   I18N
+========================================================= */
+var I18N = {
+  'zh-Hant': {
+    appTitle:'平板支撐訓練', start:'開始訓練',
+    routines:'訓練組合', newRoutine:'＋ 新增組合', myRoutine:'我的組合', defaultRoutine:'預設組合',
+    editRoutine:'編輯組合', newRoutineTitle:'新增組合',
+    namePlaceholder:'組合名稱（可留空）', emptyActions:'尚未加入任何動作',
+    needOne:'請至少加入一個動作', total:'總計', nActions:'{n} 個動作',
+    navTrain:'訓練', navHistory:'紀錄', navStats:'統計',
+    calView:'日曆', listView:'列表',
+    noRecords:'還沒有紀錄，開始第一次訓練吧！',
+    pause:'暫停', resume:'繼續', skip:'跳過', add10:'+10 秒',
+    overall:'總剩餘', next:'下一個', getReady:'準備開始…', lastOne:'最後一個動作',
+    done:'完成！', doneSub:'做得好，已完成訓練',
+    completed:'已完成', endedEarly:'提前結束',
+    thisMonth:'本月', thisYear:'今年', allTime:'全部', sessions:'訓練次數',
+    breakdown:'月份統計', yearUnit:'年', minShort:'分', secShort:'秒',
+    months:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+    weekdays:['日','一','二','三','四','五','六'],
+    cancel:'取消', save:'儲存', close:'關閉',
+    confirmDelete:'確定刪除這個組合嗎？', confirmEnd:'確定要結束這次訓練嗎？'
+  },
+  'zh-Hans': {
+    appTitle:'平板支撑训练', start:'开始训练',
+    routines:'训练组合', newRoutine:'＋ 新增组合', myRoutine:'我的组合', defaultRoutine:'预设组合',
+    editRoutine:'编辑组合', newRoutineTitle:'新增组合',
+    namePlaceholder:'组合名称（可留空）', emptyActions:'尚未加入任何动作',
+    needOne:'请至少加入一个动作', total:'总计', nActions:'{n} 个动作',
+    navTrain:'训练', navHistory:'记录', navStats:'统计',
+    calView:'日历', listView:'列表',
+    noRecords:'还没有记录，开始第一次训练吧！',
+    pause:'暂停', resume:'继续', skip:'跳过', add10:'+10 秒',
+    overall:'总剩余', next:'下一个', getReady:'准备开始…', lastOne:'最后一个动作',
+    done:'完成！', doneSub:'做得好，已完成训练',
+    completed:'已完成', endedEarly:'提前结束',
+    thisMonth:'本月', thisYear:'今年', allTime:'全部', sessions:'训练次数',
+    breakdown:'月份统计', yearUnit:'年', minShort:'分', secShort:'秒',
+    months:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+    weekdays:['日','一','二','三','四','五','六'],
+    cancel:'取消', save:'保存', close:'关闭',
+    confirmDelete:'确定删除这个组合吗？', confirmEnd:'确定要结束这次训练吗？'
+  },
+  'en': {
+    appTitle:'Plank Trainer', start:'START TRAINING',
+    routines:'Routines', newRoutine:'+ New', myRoutine:'My Routine', defaultRoutine:'Default Routine',
+    editRoutine:'Edit Routine', newRoutineTitle:'New Routine',
+    namePlaceholder:'Routine name (optional)', emptyActions:'No actions yet',
+    needOne:'Add at least one action', total:'Total', nActions:'{n} actions',
+    navTrain:'Train', navHistory:'History', navStats:'Stats',
+    calView:'Calendar', listView:'List',
+    noRecords:'No records yet. Start your first session!',
+    pause:'PAUSE', resume:'RESUME', skip:'SKIP', add10:'+10s',
+    overall:'Remaining', next:'Next', getReady:'Get ready…', lastOne:'Last action',
+    done:'Done!', doneSub:'Great job — session complete',
+    completed:'Completed', endedEarly:'Ended early',
+    thisMonth:'This month', thisYear:'This year', allTime:'All time', sessions:'Sessions',
+    breakdown:'Monthly breakdown', yearUnit:'', minShort:'min', secShort:'s',
+    months:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    weekdays:['S','M','T','W','T','F','S'],
+    cancel:'Cancel', save:'Save', close:'Close',
+    confirmDelete:'Delete this routine?', confirmEnd:'End this training session?'
+  }
+};
+
+var LANG = 'zh-Hant';
+
+function t(key, vars){
+  var pack = I18N[LANG] || I18N['en'];
+  var s = pack[key];
+  if (s === undefined) s = I18N['en'][key];
+  if (s === undefined) s = key;
+  if (vars && typeof s === 'string'){
+    for (var p in vars){ s = s.replace('{'+p+'}', vars[p]); }
+  }
+  return s;
+}
+function tMonths(){ return (I18N[LANG] || I18N.en).months; }
+function tWeekdays(){ return (I18N[LANG] || I18N.en).weekdays; }
+
+/* =========================================================
+   HELPERS
+========================================================= */
+function $(id){ return document.getElementById(id); }
+function pad(n){ return n < 10 ? '0' + n : '' + n; }
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmtMMSS(ms){
+  var s = Math.max(0, Math.ceil(ms / 1000));
+  return pad(Math.floor(s / 60)) + ':' + pad(s % 60);
+}
+function fmtMMSSmmm(ms){
+  var v = Math.max(0, ms);
+  var m = Math.floor(v / 60000);
+  var s = Math.floor((v % 60000) / 1000);
+  var x = Math.floor(v % 1000);
+  return pad(m) + ':' + pad(s) + ':' + String(x).padStart(3,'0');
+}
+function fmtMin(sec){
+  if (!sec) return '0' + t('minShort');
+  var m = sec / 60;
+  var val = m >= 10 ? Math.round(m) : Math.round(m * 10) / 10;
+  return val + t('minShort');
+}
+function actionName(a){ if(!a) return ''; return LANG === 'en' ? a.en : (LANG === 'zh-Hans' ? a.cn : a.tw); }
+function todayKey(d){
+  d = d || new Date();
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+}
+
+/* =========================================================
+   STATE
+========================================================= */
+function detectLang(){
+  var n = (navigator.language || 'zh-Hant').toLowerCase();
+  if (n.indexOf('hans') >= 0 || n.indexOf('cn') >= 0 || n.indexOf('sg') >= 0) return 'zh-Hans';
+  if (n.indexOf('zh') === 0) return 'zh-Hant';
+  return 'en';
+}
+
+var settings = store.get(K.settings, null) || {};
+if (!settings.lang)     settings.lang     = detectLang();
+if (!settings.theme)    settings.theme    = 'dark';
+if (!settings.selected) settings.selected = 'default';
+if (settings.sound === undefined) settings.sound = true;
+LANG = settings.lang;
+
+function saveSettings(){ store.set(K.settings, settings); }
+
+function defaultRoutine(){
+  return {
+    id:'default', builtin:true, nameKey:'defaultRoutine',
+    items:[
+      {a:'full',  d:60},
+      {a:'elbow', d:30},
+      {a:'lleg',  d:30},
+      {a:'rleg',  d:30},
+      {a:'lside', d:30},
+      {a:'rside', d:30},
+      {a:'elbow', d:30},
+      {a:'full',  d:60}
+    ]
+  };
+}
+
+var routines = store.get(K.routines, null);
+if (!Array.isArray(routines) || !routines.length){
+  routines = [ defaultRoutine() ];
+  store.set(K.routines, routines);
+}
+var history = store.get(K.history, []);
+if (!Array.isArray(history)) history = [];
+
+function routineName(r){
+  if (r.nameKey) return t(r.nameKey);
+  return r.name || t('myRoutine');
+}
+function routineTotal(r){ return r.items.reduce(function(s,i){ return s + i.d; }, 0); }
+function getSelectedRoutine(){
+  var r = routines.filter(function(x){ return x.id === settings.selected; })[0];
+  if (!r) r = routines[0];
+  return r;
+}
+
+/* =========================================================
+   THEME
+========================================================= */
+var THEMES = [
+  {id:'dark',   d1:'#0e1116', d2:'#34d399'},
+  {id:'light',  d1:'#f2f5f9', d2:'#0d9488'},
+  {id:'ocean',  d1:'#08202e', d2:'#22d3ee'},
+  {id:'sunset', d1:'#26131c', d2:'#fb923c'}
+];
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', settings.theme);
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta){
+    var th = THEMES.filter(function(x){ return x.id === settings.theme; })[0];
+    if (th) meta.setAttribute('content', th.d1);
+  }
+  var box = $('themeDots');
+  box.innerHTML = THEMES.map(function(th){
+    return '<button class="dot' + (th.id === settings.theme ? ' on' : '') + '" data-theme="' + th.id +
+           '" style="--d1:' + th.d1 + ';--d2:' + th.d2 + '" aria-label="' + th.id + '"></button>';
+  }).join('');
+}
+$('themeDots').addEventListener('click', function(e){
+  var b = e.target.closest('[data-theme]');
+  if (!b) return;
+  settings.theme = b.getAttribute('data-theme');
+  saveSettings(); applyTheme();
+});
+
+/* =========================================================
+   SOUND TOGGLE
+========================================================= */
+function applySoundBtn(){
+  var b = $('soundBtn');
+  b.textContent = settings.sound ? '🔊' : '🔇';
+  b.classList.toggle('off', !settings.sound);
+}
+$('soundBtn').addEventListener('click', function(){
+  settings.sound = !settings.sound;
+  saveSettings(); applySoundBtn();
+  if (settings.sound){
+    initAudio();
+    beep(1200, 150, 0.2);
+  }
+});
+
+/* =========================================================
+   LANGUAGE
+========================================================= */
+var LANG_ORDER = ['zh-Hant','zh-Hans','en'];
+var LANG_LABEL = {'zh-Hant':'繁', 'zh-Hans':'简', 'en':'EN'};
+function applyLang(){
+  document.documentElement.lang = LANG;
+  $('langBtn').textContent = LANG_LABEL[LANG];
+  $('appTitle').textContent = t('appTitle');
+  $('startLabel').textContent = t('start');
+  $('routinesTitle').textContent = t('routines');
+  $('newRoutineBtn').textContent = t('newRoutine');
+  $('navTrain').textContent = t('navTrain');
+  $('navHistory').textContent = t('navHistory');
+  $('navStats').textContent = t('navStats');
+  $('segCal').textContent = t('calView');
+  $('segList').textContent = t('listView');
+  $('lblOverall').textContent = t('overall');
+  $('pSkip').textContent = t('skip');
+  $('pAdd').textContent = t('add10');
+  $('edCancel').textContent = t('cancel');
+  $('edSave').textContent = t('save');
+  $('doneBtn').textContent = t('close');
+  updatePauseBtn();
+  buildActionSelect();
+  renderTrain();
+  renderHistory();
+  renderStats();
+}
+$('langBtn').addEventListener('click', function(){
+  var i = LANG_ORDER.indexOf(LANG);
+  LANG = LANG_ORDER[(i + 1) % LANG_ORDER.length];
+  settings.lang = LANG;
+  saveSettings(); applyLang();
+});
+
+/* =========================================================
+   TABS
+========================================================= */
+var currentView = 'train';
+function setView(v){
+  currentView = v;
+  ['train','history','stats'].forEach(function(x){
+    $('view-' + x).classList.toggle('hidden', x !== v);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.bottom button'), function(b){
+    b.classList.toggle('on', b.getAttribute('data-view') === v);
+  });
+  if (v === 'history') renderHistory();
+  if (v === 'stats')   renderStats();
+  window.scrollTo(0, 0);
+}
+Array.prototype.forEach.call(document.querySelectorAll('.bottom button'), function(b){
+  b.addEventListener('click', function(){ setView(b.getAttribute('data-view')); });
+});
+
+/* =========================================================
+   TRAIN VIEW
+========================================================= */
+function renderTrain(){
+  var list = $('routineList');
+  var sel = getSelectedRoutine();
+  if (sel) settings.selected = sel.id;
+
+  list.innerHTML = routines.map(function(r){
+    var total = routineTotal(r);
+    var chips = r.items.slice(0, 12).map(function(i){
+      var ic = ICON[i.a] || ICON.full;
+      return '<span class="chip-ic">' + ic + '</span>';
+    }).join('');
+    return '' +
+      '<div class="routine' + (r.id === settings.selected ? ' sel' : '') + '" data-id="' + r.id + '">' +
+        '<div class="r-main">' +
+          '<div class="r-name">' + esc(routineName(r)) + '</div>' +
+          '<div class="r-meta">' + t('nActions', {n: r.items.length}) + ' · ' + fmtMMSS(total * 1000) + '</div>' +
+          '<div class="r-chips">' + chips + '</div>' +
+        '</div>' +
+        '<div class="r-btns">' +
+          '<button class="btn tiny" data-edit="' + r.id + '">✎</button>' +
+          (r.builtin ? '' : '<button class="btn tiny danger" data-del="' + r.id + '">✕</button>') +
+        '</div>' +
+      '</div>';
+  }).join('');
+}
+
+$('routineList').addEventListener('click', function(e){
+  var ed = e.target.closest('[data-edit]');
+  if (ed){ e.stopPropagation(); openEditor(ed.getAttribute('data-edit')); return; }
+  var dl = e.target.closest('[data-del]');
+  if (dl){
+    e.stopPropagation();
+    var id = dl.getAttribute('data-del');
+    if (!confirm(t('confirmDelete'))) return;
+    routines = routines.filter(function(r){ return r.id !== id; });
+    if (!routines.length) routines = [ defaultRoutine() ];
+    if (settings.selected === id) settings.selected = routines[0].id;
+    store.set(K.routines, routines); saveSettings();
+    renderTrain();
+    return;
+  }
+  var card = e.target.closest('.routine');
+  if (card){
+    settings.selected = card.getAttribute('data-id');
+    saveSettings();
+    renderTrain();
+  }
+});
+
+$('startBtn').addEventListener('click', function(){ startTraining(); });
+$('newRoutineBtn').addEventListener('click', function(){ openEditor(null); });
+
+/* =========================================================
+   EDITOR
+========================================================= */
+var editing = null;
+
+function buildActionSelect(){
+  var sel = $('edAction');
+  var cur = sel.value;
+  sel.innerHTML = ACTIONS.map(function(a){
+    return '<option value="' + a.id + '">' + esc(actionName(a)) + '</option>';
+  }).join('');
+  if (cur) sel.value = cur;
+}
+
+function openEditor(id){
+  if (id){
+    var r = routines.filter(function(x){ return x.id === id; })[0];
+    if (!r) return;
+    editing = {
+      id: r.id, builtin: !!r.builtin, nameKey: r.nameKey || null, name: r.name || '',
+      items: r.items.map(function(i){ return {a:i.a, d:i.d}; })
+    };
+    $('edTitle').textContent = t('editRoutine');
+  } else {
+    editing = { id:null, nameKey:null, name:'', items:[] };
+    $('edTitle').textContent = t('newRoutineTitle');
+  }
+  $('edName').value = editing.nameKey ? '' : (editing.name || '');
+  $('edName').placeholder = editing.nameKey ? t('defaultRoutine') : t('namePlaceholder');
+  renderEditorList();
+  $('editor').classList.remove('hidden');
+}
+
+function closeEditor(){ $('editor').classList.add('hidden'); editing = null; }
+
+function renderEditorList(){
+  var box = $('edList');
+  if (!editing.items.length){
+    box.innerHTML = '<div class="empty">' + esc(t('emptyActions')) + '</div>';
+  } else {
+    box.innerHTML = editing.items.map(function(it, i){
+      var a = A_BY_ID[it.a] || ACTIONS[0];
+      return '' +
+        '<div class="ed-row">' +
+          '<span class="ed-ic">' + (ICON[it.a] || ICON.full) + '</span>' +
+          '<span class="ed-nm">' + esc(actionName(a)) + '</span>' +
+          '<input class="input ed-d" type="number" min="5" step="5" inputmode="numeric" value="' + it.d + '" data-i="' + i + '">' +
+          '<span class="ed-u">' + esc(t('secShort')) + '</span>' +
+          '<button class="btn tiny danger" data-rm="' + i + '">✕</button>' +
+        '</div>';
+    }).join('');
+  }
+  var total = editing.items.reduce(function(s,i){ return s + i.d; }, 0);
+  $('edTotal').textContent = t('total') + '：' + fmtMMSS(total * 1000);
+}
+
+$('edList').addEventListener('click', function(e){
+  var rm = e.target.closest('[data-rm]');
+  if (rm){
+    editing.items.splice(parseInt(rm.getAttribute('data-rm'), 10), 1);
+    renderEditorList();
+  }
+});
+$('edList').addEventListener('change', function(e){
+  var inp = e.target.closest('.ed-d');
+  if (!inp) return;
+  var i = parseInt(inp.getAttribute('data-i'), 10);
+  var v = parseInt(inp.value, 10);
+  if (isNaN(v) || v < 1) v = 5;
+  editing.items[i].d = v;
+  inp.value = v;
+  renderEditorList();
+});
+
+$('edAdd').addEventListener('click', function(){
+  var a = $('edAction').value;
+  var d = parseInt($('edDur').value, 10);
+  if (isNaN(d) || d < 5) d = 30;
+  editing.items.push({a:a, d:d});
+  renderEditorList();
+});
+
+$('edCancel').addEventListener('click', closeEditor);
+
+$('edSave').addEventListener('click', function(){
+  var items = editing.items.filter(function(i){ return i.d > 0; });
+  if (!items.length){ alert(t('needOne')); return; }
+  var name = $('edName').value.trim();
+
+  if (editing.id){
+    var r = routines.filter(function(x){ return x.id === editing.id; })[0];
+    if (r){
+      r.items = items;
+      if (name){ r.name = name; r.nameKey = null; }
+    }
+  } else {
+    var nr = {
+      id: 'r' + Date.now(),
+      builtin: false,
+      nameKey: null,
+      name: name || t('myRoutine'),
+      items: items
+    };
+    routines.push(nr);
+    settings.selected = nr.id;
+  }
+  store.set(K.routines, routines);
+  saveSettings();
+  closeEditor();
+  renderTrain();
+});
+
+/* =========================================================
+   PLAYER
+========================================================= */
+var P = {
+  active:false, paused:false, prep:0, prepDone:false,
+  items:[], idx:0, remaining:0, curTotal:0, total:0, elapsed:0,
+  raf:0, last:0, shownIdx:-1, routineName:'',
+  beep3:false, beep2:false, beep1:false
+};
+
+function startTraining(){
+  initAudio();
+  var r = getSelectedRoutine();
+  if (!r || !r.items.length) return;
+  P.items = r.items.map(function(i){ return {a:i.a, d:i.d}; });
+  P.idx = 0;
+  P.remaining = P.items[0].d * 1000;
+  P.curTotal = P.remaining;
+  P.total = P.items.reduce(function(s,i){ return s + i.d * 1000; }, 0);
+  P.elapsed = 0;
+  P.paused = false;
+  P.prep = 3000;
+  P.active = true;
+  P.shownIdx = -1;
+  P.last = 0;
+  P.routineName = routineName(r);
+  P.prepDone = false;
+  P.beep3 = P.beep2 = P.beep1 = false;
+
+  $('player').classList.remove('hidden');
+  $('playerInner').classList.remove('done');
+  $('pBar').style.width = '0%';
+  updatePauseBtn();
+  renderPlayer();
+  cancelAnimationFrame(P.raf);
+  P.raf = requestAnimationFrame(tick);
+}
+
+function tick(ts){
+  if (!P.active) return;
+  if (!P.last) P.last = ts;
+  var dt = ts - P.last;
+  P.last = ts;
+  if (dt > 500) dt = 500;
+
+  if (!P.paused){
+    if (P.prep > 0){
+      P.prep -= dt;
+      if (P.prep <= 0){
+        P.prep = 0;
+        if (!P.prepDone){
+          P.prepDone = true;
+          beep(1200, 220, 0.22);   /* start-of-first-action chirp */
+        }
+      }
+    } else {
+      P.remaining -= dt;
+      P.total = Math.max(0, P.total - dt);
+      P.elapsed += dt;
+
+      /* warning beeps: 3s, 2s, 1s before the action ends */
+      if (!P.beep3 && P.remaining <= 3000 && P.remaining > 0){
+        P.beep3 = true; beep(880, 90, 0.18);
+      }
+      if (!P.beep2 && P.remaining <= 2000 && P.remaining > 0){
+        P.beep2 = true; beep(880, 90, 0.18);
+      }
+      if (!P.beep1 && P.remaining <= 1000 && P.remaining > 0){
+        P.beep1 = true; beep(1100, 150, 0.22);
+      }
+
+      if (P.remaining <= 0){
+        nextAction();
+        if (!P.active) return;
+      }
+    }
+  }
+  renderPlayer();
+  P.raf = requestAnimationFrame(tick);
+}
+
+function nextAction(){
+  P.idx++;
+  if (P.idx >= P.items.length){ finishSession(true); return; }
+  P.remaining = P.items[P.idx].d * 1000;
+  P.curTotal = P.remaining;
+  P.beep3 = P.beep2 = P.beep1 = false;
+  beep(1200, 200, 0.22);   /* new-action chirp */
+}
+
+function renderPlayer(){
+  var cur = P.items[P.idx];
+  if (!cur) return;
+
+  if (P.shownIdx !== P.idx){
+    P.shownIdx = P.idx;
+    var a = A_BY_ID[cur.a] || ACTIONS[0];
+    $('pIcon').innerHTML = ICON[cur.a] || ICON.full;
+    $('pName').textContent = actionName(a);
+    var nx = P.items[P.idx + 1];
+    if (P.prep > 0){
+      $('pNext').textContent = t('getReady');
+    } else if (nx){
+      var na = A_BY_ID[nx.a] || ACTIONS[0];
+      $('pNext').textContent = t('next') + '：' + actionName(na);
+    } else {
+      $('pNext').textContent = t('lastOne');
+    }
+  }
+
+  var curMs = P.prep > 0 ? P.prep : P.remaining;
+  $('pCur').textContent = fmtMMSSmmm(curMs);
+  $('pTotal').textContent = fmtMMSS(P.total);
+
+  var pct = 0;
+  if (P.prep > 0){
+    pct = 100;
+  } else if (P.curTotal > 0){
+    pct = (1 - P.remaining / P.curTotal) * 100;
+  }
+  $('pBar').style.width = Math.max(0, Math.min(100, pct)) + '%';
+}
+
+function updatePauseBtn(){
+  var b = $('pPause');
+  if (!b) return;
+  b.textContent = P.paused ? t('resume') : t('pause');
+}
+
+$('pPause').addEventListener('click', function(){
+  P.paused = !P.paused;
+  updatePauseBtn();
+});
+
+$('pSkip').addEventListener('click', function(){
+  if (P.prep > 0){ P.prep = 0; return; }
+  P.total = Math.max(0, P.total - P.remaining);
+  nextAction();
+  if (P.active){ renderPlayer(); }
+});
+
+$('pAdd').addEventListener('click', function(){
+  P.remaining += 10000;
+  P.curTotal += 10000;
+  P.total += 10000;
+  /* re-arm beeps based on the new remaining time */
+  P.beep3 = P.remaining < 3000;
+  P.beep2 = P.remaining < 2000;
+  P.beep1 = P.remaining < 1000;
+  renderPlayer();
+});
+
+$('pClose').addEventListener('click', function(){
+  if (P.elapsed < 5000){ exitPlayer(); return; }
+  if (confirm(t('confirmEnd'))) finishSession(false);
+});
+
+function finishSession(completed){
+  P.active = false;
+  cancelAnimationFrame(P.raf);
+  var secs = Math.round(P.elapsed / 1000);
+
+  if (secs >= 5){
+    saveSession(completed, secs);
+  }
+
+  if (completed){
+    $('playerInner').classList.add('done');
+    $('doneTitle').textContent = t('done');
+    $('doneSub').textContent = t('doneSub');
+    $('doneTime').textContent = fmtMMSS(secs * 1000);
+    $('doneBtn').textContent = t('close');
+  } else {
+    exitPlayer();
+  }
+}
+
+function exitPlayer(){
+  P.active = false;
+  cancelAnimationFrame(P.raf);
+  $('player').classList.add('hidden');
+  $('playerInner').classList.remove('done');
+  renderTrain();
+  if (currentView === 'history') renderHistory();
+  if (currentView === 'stats')   renderStats();
+}
+
+$('doneBtn').addEventListener('click', exitPlayer);
+
+function saveSession(completed, secs){
+  var d = new Date();
+  history.push({
+    id: 's' + d.getTime(),
+    ts: d.getTime(),
+    date: todayKey(d),
+    name: P.routineName,
+    secs: secs,
+    completed: !!completed,
+    plan: P.items.map(function(i){ return {a:i.a, d:i.d}; })
+  });
+  store.set(K.history, history);
+}
+
+document.addEventListener('visibilitychange', function(){
+  if (document.hidden && P.active && !P.paused && P.prep <= 0){
+    P.paused = true;
+    updatePauseBtn();
+  }
+});
+
+/* =========================================================
+   HISTORY
+========================================================= */
+var histMode = 'cal';
+var calY = null, calM = null, selectedDay = null;
+
+$('histSeg').addEventListener('click', function(e){
+  var b = e.target.closest('[data-seg]');
+  if (!b) return;
+  histMode = b.getAttribute('data-seg');
+  renderHistory();
+});
+
+function renderHistory(){
+  var isCal = histMode === 'cal';
+  $('histCal').classList.toggle('hidden', !isCal);
+  $('histDay').classList.toggle('hidden', !isCal);
+  $('histList').classList.toggle('hidden', isCal);
+  Array.prototype.forEach.call($('histSeg').querySelectorAll('button'), function(b){
+    b.classList.toggle('on', b.getAttribute('data-seg') === histMode);
+  });
+  if (isCal) renderCalendar(); else renderList();
+}
+
+function renderCalendar(){
+  var now = new Date();
+  if (calY === null){ calY = now.getFullYear(); calM = now.getMonth(); }
+
+  var daysInMonth = new Date(calY, calM + 1, 0).getDate();
+  var startDow = new Date(calY, calM, 1).getDay();
+
+  var map = {};
+  history.forEach(function(h){
+    map[h.date] = (map[h.date] || 0) + h.secs;
+  });
+
+  var html = '';
+  html += '<div class="cal-head">' +
+            '<button class="btn ghost" data-cal="-1">‹</button>' +
+            '<div class="cal-title">' +
+              (LANG === 'en'
+                ? tMonths()[calM] + ' ' + calY
+                : calY + t('yearUnit') + ' ' + tMonths()[calM]) +
+            '</div>' +
+            '<button class="btn ghost" data-cal="1">›</button>' +
+          '</div>';
+
+  html += '<div class="cal-grid">';
+  tWeekdays().forEach(function(d){
+    html += '<div class="cal-dow">' + esc(d) + '</div>';
+  });
+  for (var i = 0; i < startDow; i++) html += '<div class="cal-cell empty"></div>';
+
+  var todayK = todayKey(now);
+  for (var d = 1; d <= daysInMonth; d++){
+    var key = calY + '-' + pad(calM + 1) + '-' + pad(d);
+    var secs = map[key] || 0;
+    var cls = 'cal-cell';
+    if (secs) cls += ' has';
+    if (key === todayK) cls += ' today';
+    if (key === selectedDay) cls += ' sel';
+    html += '<div class="' + cls + '" data-day="' + key + '">' +
+              '<span class="cal-num">' + d + '</span>' +
+              (secs ? '<span class="cal-min">' + fmtMin(secs) + '</span>' : '') +
+            '</div>';
+  }
+  html += '</div>';
+
+  $('histCal').innerHTML = html;
+  renderDayDetail();
+}
+
+$('histCal').addEventListener('click', function(e){
+  var b = e.target.closest('[data-cal]');
+  if (b){
+    var dir = parseInt(b.getAttribute('data-cal'), 10);
+    calM += dir;
+    if (calM < 0){ calM = 11; calY--; }
+    if (calM > 11){ calM = 0; calY++; }
+    selectedDay = null;
+    renderCalendar();
+    return;
+  }
+  var c = e.target.closest('[data-day]');
+  if (c){
+    var day = c.getAttribute('data-day');
+    selectedDay = (selectedDay === day) ? null : day;
+    renderCalendar();
+  }
+});
+
+function sessionRow(h){
+  var time = new Date(h.ts);
+  var hh = pad(time.getHours()) + ':' + pad(time.getMinutes());
+  return '<div class="sess">' +
+           '<div class="sess-top">' +
+             '<span class="sess-name">' + esc(h.name) + '</span>' +
+             '<span class="sess-meta">' + fmtMin(h.secs) + '</span>' +
+           '</div>' +
+           '<div class="sess-sub">' + hh + ' · ' +
+             (h.completed ? esc(t('completed')) : esc(t('endedEarly'))) +
+           '</div>' +
+         '</div>';
+}
+
+function renderDayDetail(){
+  var box = $('histDay');
+  if (!selectedDay){ box.innerHTML = ''; return; }
+  var items = history.filter(function(h){ return h.date === selectedDay; })
+                     .sort(function(a,b){ return b.ts - a.ts; });
+  if (!items.length){
+    box.innerHTML = '<div class="day-card"><div class="empty">' + esc(t('noRecords')) + '</div></div>';
+    return;
+  }
+  var total = items.reduce(function(s,h){ return s + h.secs; }, 0);
+  box.innerHTML = '<div class="day-card">' +
+      '<div class="day-head"><span class="day-date">' + esc(selectedDay) + '</span>' +
+      '<span class="day-total">' + fmtMin(total) + '</span></div>' +
+      items.map(sessionRow).join('') +
+    '</div>';
+}
+
+function renderList(){
+  var box = $('histList');
+  if (!history.length){
+    box.innerHTML = '<div class="empty">' + esc(t('noRecords')) + '</div>';
+    return;
+  }
+  var byDate = {};
+  history.slice().sort(function(a,b){ return b.ts - a.ts; }).forEach(function(h){
+    if (!byDate[h.date]) byDate[h.date] = [];
+    byDate[h.date].push(h);
+  });
+  var keys = Object.keys(byDate).sort().reverse();
+
+  box.innerHTML = keys.map(function(k){
+    var items = byDate[k];
+    var total = items.reduce(function(s,h){ return s + h.secs; }, 0);
+    return '<div class="day-card">' +
+             '<div class="day-head"><span class="day-date">' + esc(k) + '</span>' +
+             '<span class="day-total">' + fmtMin(total) + '</span></div>' +
+             items.map(sessionRow).join('') +
+           '</div>';
+  }).join('');
+}
+
+/* =========================================================
+   STATS
+========================================================= */
+var statsYear = null;
+
+function renderStats(){
+  var now = new Date();
+  var thisMonthKey = now.getFullYear() + '-' + pad(now.getMonth() + 1);
+  var thisYearKey  = '' + now.getFullYear();
+
+  var allSec = 0, monthSec = 0, yearSec = 0;
+  history.forEach(function(h){
+    allSec += h.secs;
+    if (h.date.indexOf(thisMonthKey) === 0) monthSec += h.secs;
+    if (h.date.indexOf(thisYearKey) === 0)  yearSec  += h.secs;
+  });
+
+  var html = '';
+  html += '<div class="stat-cards">' +
+      '<div class="stat-card"><div class="stat-num">' + fmtMin(monthSec) + '</div>' +
+        '<div class="stat-lbl">' + esc(t('thisMonth')) + '</div></div>' +
+      '<div class="stat-card"><div class="stat-num">' + fmtMin(yearSec) + '</div>' +
+        '<div class="stat-lbl">' + esc(t('thisYear')) + '</div></div>' +
+      '<div class="stat-card"><div class="stat-num">' + fmtMin(allSec) + '</div>' +
+        '<div class="stat-lbl">' + esc(t('allTime')) + '</div></div>' +
+      '<div class="stat-card"><div class="stat-num">' + history.length + '</div>' +
+        '<div class="stat-lbl">' + esc(t('sessions')) + '</div></div>' +
+    '</div>';
+
+  var years = {};
+  history.forEach(function(h){ years[h.date.slice(0,4)] = 1; });
+  years[thisYearKey] = 1;
+  var yearList = Object.keys(years).sort().reverse();
+
+  var y = statsYear || now.getFullYear();
+  if (yearList.indexOf(String(y)) < 0) y = now.getFullYear();
+
+  html += '<div class="sec-head"><h2>' + esc(t('breakdown')) + '</h2>' +
+          '<select id="statYear" class="input" style="width:auto;padding:7px 12px;">' +
+          yearList.map(function(v){
+            return '<option value="' + v + '"' + (String(v) === String(y) ? ' selected' : '') + '>' +
+                   v + (LANG === 'en' ? '' : t('yearUnit')) + '</option>';
+          }).join('') +
+          '</select></div>';
+
+  var monthSecs = [];
+  var max = 0;
+  for (var i = 0; i < 12; i++){
+    var key = y + '-' + pad(i + 1);
+    var s = history.filter(function(h){ return h.date.indexOf(key) === 0; })
+                   .reduce(function(a,h){ return a + h.secs; }, 0);
+    monthSecs.push(s);
+    if (s > max) max = s;
+  }
+
+  html += '<div class="bars">';
+  for (var m = 0; m < 12; m++){
+    var pct = max ? Math.round(monthSecs[m] / max * 100) : 0;
+    html += '<div class="bar-row">' +
+              '<span class="bar-lbl">' + esc(tMonths()[m]) + '</span>' +
+              '<span class="bar-track"><span class="bar-fill" style="width:' + pct + '%"></span></span>' +
+              '<span class="bar-val">' + fmtMin(monthSecs[m]) + '</span>' +
+            '</div>';
+  }
+  html += '</div>';
+
+  $('statsBody').innerHTML = html;
+
+  var sel = $('statYear');
+  if (sel){
+    sel.addEventListener('change', function(){
+      statsYear = parseInt(sel.value, 10);
+      renderStats();
+    });
+  }
+}
+
+/* =========================================================
+   BOOT
+========================================================= */
+applyTheme();
+applySoundBtn();
+applyLang();
+setView('train');
+
+})();
+</script>
+</body>
+</html>

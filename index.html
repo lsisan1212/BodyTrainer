@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e1116">
+<title>BodyTrainer · 居家訓練入口</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💪</text></svg>">
+<style>
+/* ================= THEME ================= */
+html[data-theme="dark"]{
+  --bg:#0e1116; --bg2:#141922; --card:#191f29; --card2:#222a36;
+  --text:#eef3f9; --muted:#93a1b5; --border:#2b3543;
+  --accent:#34d399; --accentText:#04231a; --accent2:#60a5fa;
+}
+html[data-theme="light"]{
+  --bg:#f2f5f9; --bg2:#e8edf4; --card:#ffffff; --card2:#eef2f7;
+  --text:#0f172a; --muted:#5a6a80; --border:#d3dce7;
+  --accent:#0d9488; --accentText:#ffffff; --accent2:#2563eb;
+}
+html[data-theme="ocean"]{
+  --bg:#08202e; --bg2:#0b2a3c; --card:#0e3448; --card2:#134159;
+  --text:#e6f6ff; --muted:#8fb9cf; --border:#1b5573;
+  --accent:#22d3ee; --accentText:#04222b; --accent2:#38bdf8;
+}
+html[data-theme="sunset"]{
+  --bg:#26131c; --bg2:#331a25; --card:#3a1f2b; --card2:#482736;
+  --text:#ffeef3; --muted:#c9a3b0; --border:#5c3245;
+  --accent:#fb923c; --accentText:#2b1305; --accent2:#f472b6;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg); color:var(--text); min-height:100dvh;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"PingFang TC","PingFang SC",
+              "Noto Sans TC","Noto Sans SC","Microsoft JhengHei","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation;}
+input{font-family:inherit;}
+.hidden{display:none !important;}
+
+/* ================= SHELL ================= */
+#app{max-width:820px;margin:0 auto;padding:0 16px calc(env(safe-area-inset-bottom) + 40px);}
+
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
+  padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;margin:0 -16px 22px;
+  background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:saturate(1.4) blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.brand .logo{
+  width:36px;height:36px;flex:none;display:grid;place-items:center;border-radius:12px;
+  background:var(--accent);color:var(--accentText);font-size:19px;
+  box-shadow:0 8px 20px -10px rgba(0,0,0,.7);
+}
+.brand h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.3px;line-height:1.15;}
+.brand p{margin:1px 0 0;font-size:11.5px;color:var(--muted);font-weight:600;}
+.tools{display:flex;align-items:center;gap:8px;flex:none;}
+.dots{display:flex;gap:6px;}
+.dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);padding:0;
+  background:linear-gradient(135deg,var(--d1) 50%,var(--d2) 50%);}
+.dot.on{border-color:var(--accent);}
+
+/* ================= HERO ================= */
+.hero{
+  background:linear-gradient(140deg,var(--card) 0%,var(--card2) 100%);
+  border:1px solid var(--border);border-radius:22px;padding:22px;
+  margin-bottom:18px;
+}
+.hero h2{margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:.2px;}
+.hero p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.55;}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.chip{
+  border:1px solid var(--border);background:var(--card2);color:var(--muted);
+  border-radius:999px;padding:5px 11px;font-size:11.5px;font-weight:700;
+}
+
+/* ================= SEARCH ================= */
+.search{
+  display:flex;align-items:center;gap:10px;margin-bottom:18px;
+  background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 14px;
+}
+.search span{font-size:15px;opacity:.7;}
+.search input{
+  flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14.5px;font-weight:600;
+}
+.search input::placeholder{color:var(--muted);font-weight:500;}
+
+/* ================= SECTION HEAD ================= */
+.sec-head{display:flex;align-items:center;gap:10px;margin:0 0 12px;}
+.sec-head h3{margin:0;font-size:14px;font-weight:800;letter-spacing:.4px;flex:1;color:var(--muted);text-transform:uppercase;}
+.sec-head em{font-style:normal;font-size:12px;font-weight:700;color:var(--muted);}
+
+/* ================= GRID ================= */
+.grid{display:grid;grid-template-columns:1fr;gap:14px;}
+@media(min-width:640px){.grid{grid-template-columns:1fr 1fr;}}
+
+.card{
+  position:relative;display:flex;align-items:center;gap:16px;
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:18px;overflow:hidden;
+  transition:transform .14s ease,border-color .14s ease,background .14s ease;
+}
+.card::before{
+  content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--card-accent,var(--accent));
+  opacity:.9;
+}
+.card:hover,.card:focus-visible{transform:translateY(-3px);border-color:var(--card-accent,var(--accent));}
+.card:active{transform:scale(.985);}
+.card .ico{
+  width:54px;height:54px;flex:none;border-radius:16px;display:grid;place-items:center;
+  font-size:26px;background:var(--card2);border:1px solid var(--border);
+}
+.card .meta{flex:1;min-width:0;}
+.card .meta h4{margin:0;font-size:16.5px;font-weight:800;letter-spacing:.2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card .meta .sub{margin:2px 0 0;font-size:12px;color:var(--card-accent,var(--accent));font-weight:700;}
+.card .meta .desc{margin:5px 0 0;font-size:12.5px;color:var(--muted);line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.card .go{
+  flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  background:var(--card2);border:1px solid var(--border);font-size:14px;color:var(--muted);
+}
+.card:hover .go{background:var(--card-accent,var(--accent));color:#fff;border-color:transparent;}
+.tagrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.tag{font-size:10.5px;font-weight:700;color:var(--muted);border:1px solid var(--border);
+  border-radius:999px;padding:2px 8px;}
+
+/* ================= EMPTY / NOTE ================= */
+.empty{
+  text-align:center;color:var(--muted);font-size:13.5px;line-height:1.7;
+  border:1px dashed var(--border);border-radius:18px;padding:34px 20px;
+}
+.empty b{color:var(--text);}
+.note{
+  margin-top:22px;background:var(--card);border:1px solid var(--border);border-radius:18px;
+  padding:16px 18px;font-size:12.5px;color:var(--muted);line-height:1.7;
+}
+.note b{color:var(--text);font-weight:700;}
+.note code{
+  background:var(--card2);border:1px solid var(--border);border-radius:6px;
+  padding:1px 6px;font-size:11.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  color:var(--text);
+}
+footer{margin-top:26px;text-align:center;font-size:11.5px;color:var(--muted);}
+footer a{color:var(--muted);border-bottom:1px solid var(--border);}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.grid .card{animation:fade .22s ease both;}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">💪</div>
+      <div>
+        <h1 id="siteTitle">BodyTrainer</h1>
+        <p id="siteSub">居家訓練入口</p>
+      </div>
+    </div>
+    <div class="tools">
+      <div id="themeDots" class="dots"></div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h2>今日練咩？</h2>
+    <p>所有訓練都係單檔 HTML，離線可用、資料只存喺你部手機／電腦。揀一項開始。</p>
+    <div class="chips">
+      <span class="chip" id="chipCount">— 項訓練</span>
+      <span class="chip">離線可用</span>
+      <span class="chip">本地記錄</span>
+    </div>
+  </section>
+
+  <div class="search">
+    <span>🔍</span>
+    <input id="q" type="search" placeholder="搜尋訓練（例如 plank / 核心）" autocomplete="off">
+  </div>
+
+  <div class="sec-head">
+    <h3>訓練項目</h3>
+    <em id="resultCount"></em>
+  </div>
+
+  <div id="grid" class="grid"></div>
+  <div id="empty" class="empty hidden">冇符合嘅訓練。<br>試下其他關鍵字。</div>
+
+  <div class="note">
+    <b>加新訓練：</b>把 <code>XxxTrainer.html</code> 放喺 repo 根目錄，再喺 <code>trainings.json</code> 補一項
+    （標題／emoji／描述／標籤）。如果漏咗加，本頁亦會自動偵測根目錄嘅 <code>*Trainer.html</code>。
+  </div>
+
+  <footer>
+    <a id="repoLink" href="https://github.com/lsisan1212/BodyTrainer" target="_blank" rel="noopener">lsisan1212/BodyTrainer</a>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var REPO = "lsisan1212/BodyTrainer";
+  var OWNER = REPO.split("/")[0], NAME = REPO.split("/")[1];
+  var MANIFEST = "trainings.json";
+
+  /* ---------- 內建預設（離線 / file:// 時用） ---------- */
+  var FALLBACK = {
+    site: { title: "BodyTrainer", subtitle: "居家訓練入口" },
+    trainings: [
+      { file:"PlankTrainer.html", title:"Plank Trainer", titleZh:"平板支撐",
+        desc:"核心 · 平板支撐計時與組合訓練", emoji:"🧘", accent:"#34d399", tags:["核心","靜態"] }
+    ]
+  };
+
+  /* ---------- THEME ---------- */
+  var THEMES = [
+    { id:"dark",   d1:"#34d399", d2:"#0e1116" },
+    { id:"light",  d1:"#0d9488", d2:"#f2f5f9" },
+    { id:"ocean",  d1:"#22d3ee", d2:"#08202e" },
+    { id:"sunset", d1:"#fb923c", d2:"#26131c" }
+  ];
+  var dotsEl = document.getElementById("themeDots");
+
+  function applyTheme(id){
+    document.documentElement.setAttribute("data-theme", id);
+    Array.prototype.forEach.call(dotsEl.children, function(b){
+      b.classList.toggle("on", b.dataset.theme === id);
+    });
+    try { localStorage.setItem("bt.theme", id); } catch(e){}
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", id === "light" ? "#f2f5f9"
+      : id === "ocean" ? "#08202e" : id === "sunset" ? "#26131c" : "#0e1116");
+  }
+
+  THEMES.forEach(function(t){
+    var b = document.createElement("button");
+    b.className = "dot"; b.dataset.theme = t.id;
+    b.style.setProperty("--d1", t.d1);
+    b.style.setProperty("--d2", t.d2);
+    b.title = t.id;
+    b.addEventListener("click", function(){ applyTheme(t.id); });
+    dotsEl.appendChild(b);
+  });
+
+  var saved = null;
+  try { saved = localStorage.getItem("bt.theme"); } catch(e){}
+  applyTheme(saved || "dark");
+
+  /* ---------- HELPERS ---------- */
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+  function prettyName(file){
+    return String(file).replace(/\.html?$/i, "")
+      .replace(/Trainer$/i, " Trainer")
+      .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+      .replace(/[-_]+/g, " ")
+      .replace(/\s+/g, " ").trim();
+  }
+  var EMOJI_HINTS = [
+    [/plank/i,"🧘"], [/squat/i,"🦵"], [/push ?up/i,"💪"], [/abs|core|crunch|situp|sit-up/i,"🔥"],
+    [/pull ?up|chin ?up/i,"🏋️"], [/run|cardio|hiit|jump|rope/i,"🏃"], [/yoga|stretch|mobility/i,"🧎"],
+    [/glute|hip|bridge/i,"🍑"], [/back|row|deadlift/i,"🎯"], [/leg|lunge|calf/i,"🦿"]
+  ];
+  function guessEmoji(name){
+    for (var i=0;i<EMOJI_HINTS.length;i++) if (EMOJI_HINTS[i][0].test(name)) return EMOJI_HINTS[i][1];
+    return "🏋️";
+  }
+
+  /* ---------- STATE ---------- */
+  var site = FALLBACK.site;
+  var list = [];
+
+  function render(){
+    document.getElementById("siteTitle").textContent = site.title || "BodyTrainer";
+    document.getElementById("siteSub").textContent = site.subtitle || "";
+    document.title = (site.title || "BodyTrainer") + " · " + (site.subtitle || "");
+
+    var q = (document.getElementById("q").value || "").trim().toLowerCase();
+    var shown = list.filter(function(t){
+      if (!q) return true;
+      return [t.title, t.titleZh, t.desc, (t.tags||[]).join(" "), t.file]
+        .join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+
+    document.getElementById("chipCount").textContent = list.length + " 項訓練";
+    document.getElementById("resultCount").textContent = q ? (shown.length + " / " + list.length) : (list.length + " 項");
+
+    var grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    shown.forEach(function(t, i){
+      var a = document.createElement("a");
+      a.className = "card";
+      a.href = t.file;
+      a.style.setProperty("--card-accent", t.accent || "");
+      a.style.animationDelay = Math.min(i * 35, 350) + "ms";
+
+      var tags = (t.tags || []).map(function(x){
+        return '<span class="tag">' + esc(x) + "</span>";
+      }).join("");
+
+      a.innerHTML =
+        '<div class="ico">' + esc(t.emoji || guessEmoji(t.title || t.file)) + "</div>" +
+        '<div class="meta">' +
+          "<h4>" + esc(t.title || prettyName(t.file)) + "</h4>" +
+          (t.titleZh ? '<p class="sub">' + esc(t.titleZh) + "</p>" : "") +
+          (t.desc ? '<p class="desc">' + esc(t.desc) + "</p>" : "") +
+          (tags ? '<div class="tagrow">' + tags + "</div>" : "") +
+        "</div>" +
+        '<div class="go">▶</div>';
+      grid.appendChild(a);
+    });
+
+    document.getElementById("empty").classList.toggle("hidden", shown.length !== 0);
+  }
+
+  document.getElementById("q").addEventListener("input", render);
+
+  /* ---------- LOAD: manifest → GitHub API 自動偵測 ---------- */
+  function normalize(manifest){
+    if (!manifest) return [];
+    if (manifest.site) site = manifest.site;
+    var arr = Array.isArray(manifest) ? manifest : (manifest.trainings || []);
+    return arr.filter(function(t){ return t && t.file; }).map(function(t){
+      return {
+        file: t.file,
+        title: t.title || t.titleZh || prettyName(t.file),
+        titleZh: t.titleZh || "",
+        desc: t.desc || "",
+        emoji: t.emoji || "",
+        accent: t.accent || "",
+        tags: t.tags || []
+      };
+    });
+  }
+
+  function merge(list, extra){
+    var seen = {};
+    list.forEach(function(t){ seen[t.file.toLowerCase()] = 1; });
+    extra.forEach(function(k){
+      if (!seen[k.toLowerCase()]) { seen[k.toLowerCase()] = 1; list.push(makeAuto(k)); }
+    });
+    return list;
+  }
+  function makeAuto(file){
+    var base = prettyName(file);
+    return { file: file, title: base, titleZh: "", desc: "自動偵測到嘅訓練（未喺 trainings.json 描述）",
+             emoji: guessEmoji(base), accent: "", tags: [] };
+  }
+
+  function fetchManifest(){
+    return fetch(MANIFEST + "?t=" + Date.now(), { cache: "no-store" })
+      .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(normalize);
+  }
+
+  function detectFromRepo(){
+    return fetch("https://api.github.com/repos/" + OWNER + "/" + NAME + "/contents", {
+      headers: { "Accept": "application/vnd.github+json" }
+    })
+      .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(items){
+        if (!Array.isArray(items)) return [];
+        var found = items.filter(function(it){
+          return it.type === "file" && /\.html?$/i.test(it.name) &&
+                 it.name.toLowerCase() !== "index.html" && /trainer/i.test(it.name);
+        }).map(function(it){ return it.name; });
+        var priority = { "plank": 0 };
+        return found.sort(function(a,b){ return a.localeCompare(b); });
+      });
+  }
+
+  fetchManifest()
+    .then(function(lt){
+      list = lt.length ? lt : normalize(FALLBACK);
+      render();
+      return detectFromRepo().then(function(files){
+        var before = list.length;
+        list = merge(list, files);
+        if (list.length !== before) render();
+      }).catch(function(){});
+    })
+    .catch(function(){
+      /* file:// 或 fetch 被擋 → 用內建預設 */
+      list = normalize(FALLBACK);
+      render();
+      document.getElementById("empty").classList.add("hidden");
+    });
+
+  render();
+})();
+</script>
+</body>
+</html>

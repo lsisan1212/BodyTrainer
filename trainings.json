@@ -1,0 +1,18 @@
+{
+  "_readme": "新增訓練：把 xxxTrainer.html 放到 repo 根目錄，然後在下面 trainings 陣列加一項即可。若忘記加，主頁也會嘗試自動偵測根目錄的 *Trainer.html。",
+  "site": {
+    "title": "BodyTrainer",
+    "subtitle": "居家訓練入口"
+  },
+  "trainings": [
+    {
+      "file": "PlankTrainer.html",
+      "title": "Plank Trainer",
+      "titleZh": "平板支撐",
+      "desc": "核心 · 平板支撐計時與組合訓練",
+      "emoji": "🧘",
+      "accent": "#34d399",
+      "tags": ["核心", "靜態"]
+    }
+  ]
+}
